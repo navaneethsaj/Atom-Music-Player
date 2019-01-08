@@ -10,6 +10,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -109,12 +110,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     (android.provider.MediaStore.Audio.Media._ID);
             int artistColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.ARTIST);
+
+            ContentResolver musicResolve = getContentResolver();
+            Uri smusicUri = android.provider.MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
+            Cursor music =musicResolve.query(smusicUri,null         //should use where clause(_ID==albumid)
+                    ,null, null, null);
+
+
+
+            music.moveToFirst();            //i put only one song in my external storage to keep things simple
+            int x=music.getColumnIndex(android.provider.MediaStore.Audio.Albums.ALBUM_ART);
+            String thisArt = music.getString(x);
             //add songs to list
             do {
+
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                songList.add(new Song(thisId, thisTitle, thisArtist));
+                songList.add(new Song(thisId, thisTitle, thisArtist,thisArt));
             }
             while (musicCursor.moveToNext());
         }
