@@ -60,8 +60,7 @@ public class SongAdapter extends BaseAdapter {
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());
 
-        Bitmap bm= BitmapFactory.decodeFile(currSong.getAlbumArt());
-        albumart.setImageBitmap(bm);
+
         albumart.setImageResource(R.drawable.ic_menu_camera);
 
         //set position as tag
