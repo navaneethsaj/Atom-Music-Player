@@ -15,10 +15,11 @@
 
     </ListView>
     <RelativeLayout
+        android:background="@color/colorPrimary"
         android:id="@+id/controller_layout"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="100dp">
+        android:layout_height="120dp">
         <LinearLayout
             android:orientation="horizontal"
             android:id="@+id/seekbarAndTIme"
@@ -36,6 +37,9 @@
             <SeekBar
                 android:layout_weight=".3"
                 android:id="@+id/seekbar"
+                android:thumbTint="@color/progressTint"
+                android:progressTint="@color/progressTint"
+                android:progressBackgroundTint="@color/progressBgTint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <TextView
@@ -46,31 +50,66 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
-        <LinearLayout
+        <RelativeLayout
             android:layout_below="@+id/seekbarAndTIme"
             android:id="@+id/controls"
             android:orientation="horizontal"
-            android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="60dp">
+            android:layout_height="80dp">
+            <ImageView
+                android:layout_margin="4dp"
+                android:layout_alignParentLeft="true"
+                android:src="@drawable/ic_music_note_blue_24dp"
+                android:layout_centerVertical="true"
+                android:layout_width="80dp"
+                android:scaleType="fitXY"
+                android:layout_height="match_parent"
+                android:id="@+id/albumArtController"/>
+            <LinearLayout
+                android:layout_toLeftOf="@+id/play_pause"
+                android:layout_toRightOf="@+id/albumArtController"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <TextView
+                    android:padding="5dp"
+                    android:text="Song"
+                    android:maxLines="1"
+                    android:id="@+id/title_control"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:padding="5dp"
+                    android:text="Artist"
+                    android:maxLines="1"
+                    android:id="@+id/artist_control"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
             <Button
                 android:text="Prev"
+                android:visibility="gone"
                 android:onClick="prevClicked"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/previous_button"/>
             <Button
                 android:text="Play"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@+id/next_button"
                 android:onClick="playClicked"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
                 android:id="@+id/play_pause"/>
             <Button
+                android:layout_alignParentEnd="true"
                 android:text="Next"
+                android:layout_centerVertical="true"
                 android:onClick="nextClicked"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
                 android:id="@+id/next_button"/>
-        </LinearLayout>
+        </RelativeLayout>
     </RelativeLayout>
 </RelativeLayout>

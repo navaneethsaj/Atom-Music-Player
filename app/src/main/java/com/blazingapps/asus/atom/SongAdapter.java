@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class SongAdapter extends BaseAdapter {
@@ -23,9 +28,11 @@ public class SongAdapter extends BaseAdapter {
 
     private ArrayList<Song> songs;
     private LayoutInflater songInf;
+    Context context;
 
     public SongAdapter(Context c, ArrayList<Song> theSongs){
         songs=theSongs;
+        this.context = c;
         songInf=LayoutInflater.from(c);
     }
 
@@ -58,11 +65,14 @@ public class SongAdapter extends BaseAdapter {
         Song currSong = songs.get(position);
         //get title and artist strings
         songView.setText(currSong.getTitle());
-        artistView.setText(currSong.getArtist());
+        artistView.setText(currSong.getArtist()+String.valueOf(currSong.getAlbumId()));
 
 
-        albumart.setImageResource(R.drawable.ic_menu_camera);
+        Uri sArtworkUri = Uri
+                .parse("content://media/external/audio/albumart");
+        Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, currSong.getAlbumId());
 
+        Picasso.get().load(albumArtUri).placeholder(R.drawable.ic_music_note_blue_24dp).error(R.drawable.ic_music_note_red_24dp).into(albumart);
         //set position as tag
         songLay.setTag(position);
         return songLay;

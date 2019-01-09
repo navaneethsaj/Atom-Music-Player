@@ -10,15 +10,21 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener {
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private ArrayList<Song> songList;
     MediaPlayer mediaPlayer ;
     private IBinder myBinder = new MyBinder();
     int songId;
     private Button playPauseButton,nextButton,prevButton;
+    private ImageView albumArt;
+    private TextView artistTextView,titleTextView;
 
     public MusicService() {
     }
@@ -33,6 +39,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         super.onCreate();
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        mediaPlayer.setOnCompletionListener(this);
     }
 
     @Override
@@ -45,16 +53,26 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         super.onDestroy();
     }
 
-    public void setUIElements(Button playButton, Button prevButton, Button nextButton) {
+    public void setUIElements(Button playButton, Button prevButton, Button nextButton, ImageView albumArt, TextView titleTextView, TextView artistTextView) {
         this.playPauseButton = playButton;
         this.nextButton = nextButton;
         this.prevButton = prevButton;
+        this.albumArt = albumArt;
+        this.titleTextView = titleTextView;
+        this.artistTextView = artistTextView;
     }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-
+        //Log.d("TAGZ","Z");
         mediaPlayer.start();
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        if (mediaPlayer.getCurrentPosition()>0){
+            Log.d("TAGZ", String.valueOf(mediaPlayer.getCurrentPosition()));
+        }
     }
 
 
@@ -69,6 +87,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void playSong(int songId){
+        //Log.d("TAGZ","P");
         mediaPlayer.reset();
         this.songId = songId;
         Song playSong = songList.get(songId);
@@ -80,6 +99,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             mediaPlayer.setDataSource(getApplicationContext(), trackUri);
             mediaPlayer.setOnPreparedListener(this);
             mediaPlayer.prepareAsync();
+            Uri sArtworkUri = Uri
+                    .parse("content://media/external/audio/albumart");
+            Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, playSong.getAlbumId());
+            Picasso.get().load(albumArtUri).placeholder(R.drawable.ic_music_note_blue_24dp).error(R.drawable.ic_music_note_red_24dp).into(albumArt);
+            titleTextView.setText(playSong.getTitle());
+            artistTextView.setText(playSong.getArtist());
         }
         catch(Exception e){
             Log.e("MUSIC SERVICE", "Error setting data source", e);

@@ -2,6 +2,7 @@ package com.blazingapps.asus.atom;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -20,9 +21,12 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +44,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     android.support.v7.widget.Toolbar toolbar;
     DrawerLayout mDrawerLayout;
     Button playButton,nextButton,prevButton;
+    ImageView albumArtImageView;
     TextView maxtime,currtime;
+    TextView titleTextview,artistTextview;
     SeekBar seekBar;
     MediaPlayer mediaPlayer;
     private Handler myHandler = new Handler();
@@ -52,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             musicService = binder.getService();
             isBound = true;
             musicService.setSongList(songList);
-            musicService.setUIElements(playButton,prevButton,nextButton);
+            musicService.setUIElements(playButton,prevButton,nextButton,albumArtImageView,titleTextview,artistTextview);
             mediaPlayer = musicService.getPlayerInstance();
             seekBar.setProgress((int)startTime);
             myHandler.postDelayed(UpdateSongTime,100);
@@ -85,6 +91,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         playButton = findViewById(R.id.play_pause);
         prevButton = findViewById(R.id.previous_button);
         nextButton = findViewById(R.id.next_button);
+        titleTextview = findViewById(R.id.title_control);
+        artistTextview = findViewById(R.id.artist_control);
+        albumArtImageView = findViewById(R.id.albumArtController);
 
         songList = new ArrayList<Song>();
         getSongList();
@@ -193,4 +202,5 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void onStopTrackingTouch(SeekBar seekBar) {
         musicService.seekTo(seekBar.getProgress());
     }
+
 }
