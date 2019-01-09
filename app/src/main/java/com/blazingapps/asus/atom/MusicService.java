@@ -71,6 +71,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         if (mediaPlayer.getCurrentPosition()>0){
+            mediaPlayer.reset();
+            next();
             Log.d("TAGZ", String.valueOf(mediaPlayer.getCurrentPosition()));
         }
     }
