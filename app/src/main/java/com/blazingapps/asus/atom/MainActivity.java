@@ -203,4 +203,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         musicService.seekTo(seekBar.getProgress());
     }
 
+    public void setRandom(View view) {
+        musicService.setShuffle();
+    }
 }

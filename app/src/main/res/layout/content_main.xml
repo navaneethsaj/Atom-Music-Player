@@ -97,19 +97,34 @@
             <Button
                 android:text="Play"
                 android:layout_centerVertical="true"
-                android:layout_toLeftOf="@+id/next_button"
+                android:layout_toLeftOf="@+id/shuffleAndNext"
                 android:onClick="playClicked"
                 android:layout_width="70dp"
                 android:layout_height="match_parent"
                 android:id="@+id/play_pause"/>
-            <Button
-                android:layout_alignParentEnd="true"
-                android:text="Next"
+            <LinearLayout
+                android:id="@+id/shuffleAndNext"
+                android:orientation="vertical"
                 android:layout_centerVertical="true"
-                android:onClick="nextClicked"
-                android:layout_width="70dp"
-                android:layout_height="match_parent"
-                android:id="@+id/next_button"/>
+                android:layout_alignParentEnd="true"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:text="Next"
+                    android:layout_weight="1"
+                    android:onClick="nextClicked"
+                    android:layout_width="70dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/next_button"/>
+                <Button
+                    android:layout_weight="1"
+                    android:onClick="setRandom"
+                    android:layout_width="70dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/shuffleButton"
+                    android:text="Rand"/>
+            </LinearLayout>
         </RelativeLayout>
     </RelativeLayout>
 </RelativeLayout>

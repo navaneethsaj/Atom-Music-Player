@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     private ArrayList<Song> songList;
@@ -25,6 +26,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private Button playPauseButton,nextButton,prevButton;
     private ImageView albumArt;
     private TextView artistTextView,titleTextView;
+    private boolean shuffle = false;
+    private Random rand;
+    private boolean isJustStarted=true;
 
     public MusicService() {
     }
@@ -39,8 +43,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         super.onCreate();
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
         mediaPlayer.setOnCompletionListener(this);
+        rand = new Random();
     }
 
     @Override
@@ -66,14 +70,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mediaPlayer) {
         //Log.d("TAGZ","Z");
         mediaPlayer.start();
+        if (mediaPlayer.isPlaying()){
+            playPauseButton.setText("Pause");
+        }else {
+            playPauseButton.setText("Play");
+        }
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        if (mediaPlayer.getCurrentPosition()>0){
+        if (mediaPlayer.getCurrentPosition()>0 && !isJustStarted){
             mediaPlayer.reset();
             next();
-            Log.d("TAGZ", String.valueOf(mediaPlayer.getCurrentPosition()));
+            //Log.d("TAGZ", String.valueOf(mediaPlayer.getCurrentPosition()));
         }
     }
 
@@ -90,6 +99,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void playSong(int songId){
         //Log.d("TAGZ","P");
+
+        isJustStarted = false;
         mediaPlayer.reset();
         this.songId = songId;
         Song playSong = songList.get(songId);
@@ -125,9 +136,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void next(){
-        songId++;
-        if (songId>=songList.size()){
-            songId=0;
+        if(shuffle){
+            int newSong = songId;
+            while(newSong==songId){
+                newSong=rand.nextInt(songList.size());
+            }
+            songId=newSong;
+        }
+        else{
+            songId++;
+            if(songId>=songList.size()) songId=0;
         }
         playSong(songId);
     }
@@ -146,5 +164,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void seekTo(int s){
         mediaPlayer.seekTo(s);
+    }
+
+    public void setShuffle(){
+        shuffle=!shuffle;
+    }
+    public boolean getShuffle(){
+        return shuffle;
     }
 }
