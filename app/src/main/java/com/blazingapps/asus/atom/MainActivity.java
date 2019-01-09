@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -25,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -33,7 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
     private ArrayList<Song> songList;
     SongAdapter songAdapter;
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     TextView titleTextview,artistTextview;
     SeekBar seekBar;
     MediaPlayer mediaPlayer;
+    NavigationView navigationView;
     private Handler myHandler = new Handler();
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -94,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         titleTextview = findViewById(R.id.title_control);
         artistTextview = findViewById(R.id.artist_control);
         albumArtImageView = findViewById(R.id.albumArtController);
+        navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         songList = new ArrayList<Song>();
         getSongList();
@@ -205,5 +211,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
     public void setRandom(View view) {
         musicService.setShuffle();
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.playListNavigation:
+                Toast.makeText(getApplicationContext(),"TT",Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
     }
 }
