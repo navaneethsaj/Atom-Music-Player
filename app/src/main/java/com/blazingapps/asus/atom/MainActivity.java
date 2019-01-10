@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     TextView maxtime,currtime;
     TextView titleTextview,artistTextview;
     SeekBar seekBar;
+    RelativeLayout controlLayout;
     MediaPlayer mediaPlayer;
     NavigationView navigationView;
     private Handler myHandler = new Handler();
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             mediaPlayer = musicService.getPlayerInstance();
             seekBar.setProgress((int)startTime);
             myHandler.postDelayed(UpdateSongTime,100);
+            musicService.initLastSong();
             Log.d("TAGZ","Connected");
         }
 
@@ -217,9 +220,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.playListNavigation:
-                Toast.makeText(getApplicationContext(),"TT",Toast.LENGTH_SHORT).show();
+
+                //Toast.makeText(getApplicationContext(),"TT",Toast.LENGTH_SHORT).show();
                 break;
         }
         return true;
+    }
+
+    public void goFullPlayer(View view) {
+        Intent intent = new Intent(this,FullPlayerActivity.class);
+        startActivity(intent);
     }
 }

@@ -53,6 +53,7 @@
         <RelativeLayout
             android:layout_below="@+id/seekbarAndTIme"
             android:id="@+id/controls"
+            android:onClick="goFullPlayer"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="80dp">

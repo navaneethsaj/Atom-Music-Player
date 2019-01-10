@@ -23,12 +23,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     MediaPlayer mediaPlayer ;
     private IBinder myBinder = new MyBinder();
     int songId;
-    private Button playPauseButton,nextButton,prevButton;
-    private ImageView albumArt;
+    private Button playPauseButton,nextButton,prevButton,fullplaybtn,fullprevbtn,fullnextbtn;
+    private ImageView albumArt, fullPlayerArt;
     private TextView artistTextView,titleTextView;
     private boolean shuffle = false;
     private Random rand;
     private boolean isJustStarted=true;
+    private int lastSongId =5;
 
     public MusicService() {
     }
@@ -45,6 +46,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnCompletionListener(this);
         rand = new Random();
+        songId= lastSongId;
     }
 
     @Override
@@ -75,6 +77,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }else {
             playPauseButton.setText("Play");
         }
+        updateUIFullPlayer();
     }
 
     @Override
@@ -99,7 +102,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void playSong(int songId){
         //Log.d("TAGZ","P");
-
+        setFullScrnAlbumArt();
         isJustStarted = false;
         mediaPlayer.reset();
         this.songId = songId;
@@ -122,16 +125,25 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         catch(Exception e){
             Log.e("MUSIC SERVICE", "Error setting data source", e);
         }
-
     }
 
     public void play_pause(){
+        if (isJustStarted==true){
+            songId= lastSongId;
+            playSong(songId);
+        }
         if (mediaPlayer.isPlaying()){
             mediaPlayer.pause();
             playPauseButton.setText("Play");
+            if (fullplaybtn!=null){
+                fullplaybtn.setText("Play\n"+songList.get(songId).getTitle());
+            }
         }else {
             mediaPlayer.start();
             playPauseButton.setText("Pause");
+            if (fullplaybtn!=null){
+                fullplaybtn.setText("Pause\n"+songList.get(songId).getTitle());
+            }
         }
     }
 
@@ -171,5 +183,57 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
     public boolean getShuffle(){
         return shuffle;
+    }
+
+    public long getalBumId(){
+        return songList.get(songId).getAlbumId();
+    }
+
+    public void setFullPlayerArt(ImageView fullPlayerArt) {
+        this.fullPlayerArt = fullPlayerArt;
+    }
+
+
+    private void setFullScrnAlbumArt() {
+        if (fullPlayerArt!=null) {
+            Uri sArtworkUri = Uri
+                    .parse("content://media/external/audio/albumart");
+            Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, getalBumId());
+            Picasso.get().load(albumArtUri).placeholder(R.drawable.ic_music_note_blue_24dp).error(R.drawable.ic_music_note_red_24dp).into(fullPlayerArt);
+        }
+    }
+
+    public void setUIFullScrn(Button prev,Button play,Button next){
+        this.fullnextbtn=next;
+        this.fullplaybtn=play;
+        this.fullprevbtn=prev;
+    }
+
+    public void updateUIFullPlayer(){
+        if (fullprevbtn!=null&fullnextbtn!=null&&fullplaybtn!=null){
+            int pre,nxt;
+            pre=songId-1;
+            nxt=songId+1;
+            if (pre<0){
+                pre=songList.size()-1;
+            }
+            if (nxt>=songList.size()){
+                nxt=0;
+            }
+            fullprevbtn.setText("PREV"+"\n"+songList.get(pre).getTitle());
+            fullnextbtn.setText("NEXT\n"+songList.get(nxt).getTitle());
+        }
+        if (fullplaybtn!=null) {
+            if (mediaPlayer.isPlaying()) {
+                fullplaybtn.setText("Pause\n" + songList.get(songId).getTitle());
+            }else {
+                fullplaybtn.setText("Play\n" + songList.get(songId).getTitle());
+            }
+        }
+    }
+
+    public void initLastSong(){
+        titleTextView.setText(songList.get(songId).getTitle());
+        artistTextView.setText(songList.get(songId).getArtist());
     }
 }
