@@ -1,14 +1,19 @@
 package com.blazingapps.asus.atom;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -250,6 +255,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void initNotification(){
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default",
+                    "YOUR_CHANNEL_NAME",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("YOUR_NOTIFICATION_CHANNEL_DISCRIPTION");
+            mNotificationManager.createNotificationChannel(channel);
+        }
 
         final Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setAction(Intent.ACTION_MAIN);
@@ -264,11 +278,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 .setOngoing(true)
                 .setContentTitle(songList.get(songId).getTitle())
                 .setContentText(songList.get(songId).getArtist());
-        Notification not = builder.build();
-
-        startForeground(NOTIFICATION_ID, not);
-// NOTIFICATION_ID is a unique int for each notification that you must define
-        //notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
     public void initCallStateListner(){
@@ -304,4 +314,5 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
         }
     }
+
 }

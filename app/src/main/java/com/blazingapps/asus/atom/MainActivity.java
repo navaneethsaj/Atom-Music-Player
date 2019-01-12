@@ -1,20 +1,21 @@
 package com.blazingapps.asus.atom;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -31,8 +32,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
+    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE =123 ;
     private ArrayList<Song> songList;
     SongAdapter songAdapter;
     ListView songlistview;
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         songlistview = findViewById(R.id.songlistview);
         seekBar = findViewById(R.id.seekbar);
         currtime = findViewById(R.id.currTime);
@@ -107,15 +108,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         navigationView.setNavigationItemSelectedListener(this);
 
         songList = new ArrayList<Song>();
-        getSongList();
-        songAdapter = new SongAdapter(this, songList);
-        songlistview.setAdapter(songAdapter);
 
-        Intent intent = new Intent(this, MusicService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-
-        seekBar.setOnSeekBarChangeListener(this);
-        Log.d("oncreateZZ","true");
+        if (checkPermission()){
+            initPlayer();
+        }
     }
 
     public void getSongList() {
@@ -233,5 +229,55 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void goFullPlayer(View view) {
         Intent intent = new Intent(this,FullPlayerActivity.class);
         startActivity(intent);
+    }
+
+    public boolean checkPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                // Should we show an explanation?
+                if (shouldShowRequestPermissionRationale(
+                        Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    // Explain to the user why we need to read the contacts
+                }
+
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+
+                // MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE is an
+                // app-defined int constant that should be quite unique
+
+                return false;
+            }else {
+                return true;
+            }
+        }
+        return true;
+    }
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted.
+                initPlayer();
+            } else {
+                // User refused to grant permission.
+                Toast.makeText(getApplicationContext(),"Permission Required",Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void initPlayer(){
+        getSongList();
+        songAdapter = new SongAdapter(this, songList);
+        songlistview.setAdapter(songAdapter);
+
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        seekBar.setOnSeekBarChangeListener(this);
+        Log.d("oncreateZZ","true");
     }
 }
