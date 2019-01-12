@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     MediaPlayer mediaPlayer;
     NavigationView navigationView;
     private Handler myHandler = new Handler();
+    MusicControlBroadCastReceiver musicControlBroadCastReceiver;
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         seekBar.setOnSeekBarChangeListener(this);
+        Log.d("oncreateZZ","true");
     }
 
     public void getSongList() {

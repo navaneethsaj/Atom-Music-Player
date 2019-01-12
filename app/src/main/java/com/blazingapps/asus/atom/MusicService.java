@@ -1,5 +1,7 @@
 package com.blazingapps.asus.atom;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -8,6 +10,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+    private static final String CHANNEL_ID = "notificationChannel";
+    private static final String NOTIFICATION_CNST = "noticonst";
     private ArrayList<Song> songList;
     MediaPlayer mediaPlayer ;
     private IBinder myBinder = new MyBinder();
@@ -30,6 +36,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private Random rand;
     private boolean isJustStarted=true;
     private int lastSongId =5;
+    private int NOTIFICATION_ID =99;
+    PhoneStateListener phoneStateListener;
 
     public MusicService() {
     }
@@ -47,6 +55,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnCompletionListener(this);
         rand = new Random();
         songId= lastSongId;
+        initCallStateListner();
     }
 
     @Override
@@ -57,6 +66,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onDestroy() {
         super.onDestroy();
+        destroyCallStateListner();
     }
 
     public void setUIElements(Button playButton, Button prevButton, Button nextButton, ImageView albumArt, TextView titleTextView, TextView artistTextView) {
@@ -124,6 +134,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         catch(Exception e){
             Log.e("MUSIC SERVICE", "Error setting data source", e);
+        }finally {
+            initNotification();
         }
     }
 
@@ -235,5 +247,61 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void initLastSong(){
         titleTextView.setText(songList.get(songId).getTitle());
         artistTextView.setText(songList.get(songId).getArtist());
+    }
+
+    public void initNotification(){
+
+        final Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.setAction(Intent.ACTION_MAIN);
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        PendingIntent pendInt = PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification.Builder builder = new Notification.Builder(this);
+
+        builder.setContentIntent(pendInt)
+                .setSmallIcon(R.drawable.ic_music_note_blue_24dp)
+                .setOngoing(true)
+                .setContentTitle(songList.get(songId).getTitle())
+                .setContentText(songList.get(songId).getArtist());
+        Notification not = builder.build();
+
+        startForeground(NOTIFICATION_ID, not);
+// NOTIFICATION_ID is a unique int for each notification that you must define
+        //notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    }
+
+    public void initCallStateListner(){
+        PhoneStateListener phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                if (state == TelephonyManager.CALL_STATE_RINGING) {
+                    if (mediaPlayer.isPlaying()){
+                        play_pause();
+                    }
+                    //Incoming call: Pause music
+                } else if(state == TelephonyManager.CALL_STATE_IDLE) {
+                    //Not in call: Play music
+                } else if(state == TelephonyManager.CALL_STATE_OFFHOOK) {
+                    //A call is dialing, active or on hold
+                    if (mediaPlayer.isPlaying()){
+                        play_pause();
+                    }
+                }
+                super.onCallStateChanged(state, incomingNumber);
+            }
+        };
+        this.phoneStateListener = phoneStateListener;
+        TelephonyManager mgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        if(mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+    }
+
+    public void destroyCallStateListner(){
+        TelephonyManager mgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        if(mgr != null) {
+            mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
     }
 }
