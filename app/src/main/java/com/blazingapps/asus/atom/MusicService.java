@@ -5,21 +5,31 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.session.MediaSession;
+import android.media.session.MediaSessionManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RemoteViews;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -41,8 +51,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private Random rand;
     private boolean isJustStarted=true;
     private int lastSongId =5;
-    private int NOTIFICATION_ID =99;
+    String songName;
     PhoneStateListener phoneStateListener;
+
+    private static final int NOTIFICATION_ID = 99;
+
 
     public MusicService() {
     }
@@ -122,6 +135,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.reset();
         this.songId = songId;
         Song playSong = songList.get(songId);
+        songName = playSong.getTitle();
         long currSong = playSong.getId();
         Uri trackUri = ContentUris.withAppendedId(
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -153,13 +167,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             mediaPlayer.pause();
             playPauseButton.setText("Play");
             if (fullplaybtn!=null){
-                fullplaybtn.setText("Play\n"+songList.get(songId).getTitle());
+                fullplaybtn.setText("Play\n"+songName);
             }
         }else {
             mediaPlayer.start();
             playPauseButton.setText("Pause");
             if (fullplaybtn!=null){
-                fullplaybtn.setText("Pause\n"+songList.get(songId).getTitle());
+                fullplaybtn.setText("Pause\n"+songName);
             }
         }
     }
@@ -181,7 +195,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void prev(){
         songId--;
-        if (songId<0){
+        if (songId<0 || songId>=songList.size()){
             songId=songList.size()-1;
         }
         playSong(songId);
@@ -229,6 +243,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void updateUIFullPlayer(){
         if (fullprevbtn!=null&fullnextbtn!=null&&fullplaybtn!=null){
             int pre,nxt;
+            if (songId>=songList.size()){
+                songId=0;
+            }
             pre=songId-1;
             nxt=songId+1;
             if (pre<0){
@@ -242,9 +259,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         if (fullplaybtn!=null) {
             if (mediaPlayer.isPlaying()) {
-                fullplaybtn.setText("Pause\n" + songList.get(songId).getTitle());
+                fullplaybtn.setText("Pause\n" + songName);
             }else {
-                fullplaybtn.setText("Play\n" + songList.get(songId).getTitle());
+                fullplaybtn.setText("Play\n" + songName);
             }
         }
     }
@@ -271,14 +288,68 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         PendingIntent pendInt = PendingIntent.getActivity(this, 0,
                 notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification.Builder builder = new Notification.Builder(this);
+//        Notification.Builder builder = new Notification.Builder(this);
+//
+//        builder.setContentIntent(pendInt)
+//                .setSmallIcon(R.drawable.ic_music_note_blue_24dp)
+//                .setOngoing(true)
+//                .addAction(R.drawable.ic_music_note_blue_24dp, "Previous", pendInt) // #0
+//                .addAction(R.drawable.ic_music_note_red_24dp, "Pause", pendInt) // #1
+//                .setContentTitle(songList.get(songId).getTitle())
+//                .setContentText(songList.get(songId).getArtist());
+//
+//        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
 
-        builder.setContentIntent(pendInt)
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+//        builder.setAutoCancel(false)
+//                .setSmallIcon(R.drawable.ic_music_note_red_24dp)
+//                .setTicker("Hearty365")
+//                .setContentTitle("Default notification")
+//                .setContentText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+//                .setContentIntent(pendInt)
+//                .addAction(R.drawable.baseline_volume_mute_black_48dp,"Next",pendInt);
+//        mNotificationManager.notify(NOTIFICATION_ID,builder.build());
+
+//
+//        Notification n  = new Notification.Builder(this)
+//                .setContentTitle("New mail from " + "test@gmail.com")
+//                .setContentText("Subject")
+//                .setSmallIcon(R.drawable.ic_music_note_blue_24dp)
+//                .setContentIntent(pendInt)
+//                .setOngoing(true)
+//                .setPriority(Notification.PRIORITY_MAX)
+//                .setWhen(0)
+//                .setAutoCancel(false)
+//                .addAction(R.drawable.baseline_volume_mute_black_48dp, "Call", pendInt)
+//                .addAction(R.drawable.baseline_volume_up_black_48dp, "More", pendInt)
+//                .addAction(R.drawable.ic_music_note_black_24dp, "And more", pendInt).build();
+//
+//
+//        mNotificationManager.notify(NOTIFICATION_ID,n);
+
+        Intent switchIntent = new Intent(this, switchButtonListener.class);
+        PendingIntent pendingSwitchIntent = PendingIntent.getBroadcast(this, 0,
+                switchIntent, 0);
+
+        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_layout);
+        contentView.setTextViewText(R.id.title, songList.get(songId).getTitle());
+        contentView.setTextViewText(R.id.text, songList.get(songId).getArtist());
+        contentView.setOnClickPendingIntent(R.id.playNotificationButton,
+                pendingSwitchIntent);
+
+
+        Notification.Builder mBuilder = new Notification.Builder(getApplicationContext())
+                .setContentIntent(pendInt)
                 .setSmallIcon(R.drawable.ic_music_note_blue_24dp)
-                .setOngoing(true)
-                .setContentTitle(songList.get(songId).getTitle())
-                .setContentText(songList.get(songId).getArtist());
-        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+                .setContent(contentView)
+                .setPriority(Notification.PRIORITY_MAX)
+                .setAutoCancel(false)
+                .setOngoing(true);
+
+        Notification notification = mBuilder.build();
+
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
+
     }
 
     public void initCallStateListner(){
@@ -315,4 +386,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
+    public static class switchButtonListener extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("Here", "I am here");
+        }
+    }
+
 }
+

@@ -22,17 +22,20 @@ import com.squareup.picasso.Picasso;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class SongAdapter extends BaseAdapter {
 
 
     private ArrayList<Song> songs;
+    private ArrayList<Song> originalList = new ArrayList<>();
     private LayoutInflater songInf;
     Context context;
 
     public SongAdapter(Context c, ArrayList<Song> theSongs){
-        songs=theSongs;
+        songs = theSongs;
         this.context = c;
+        originalList.addAll(theSongs);
         songInf=LayoutInflater.from(c);
     }
 
@@ -78,4 +81,30 @@ public class SongAdapter extends BaseAdapter {
         return songLay;
     }
 
+    public void filter(String charText) {
+        charText = charText.toLowerCase(Locale.getDefault());
+        songs.clear();
+        if (charText.length() == 0) {
+            songs.addAll(originalList);
+        }
+        else
+        {
+            for (Song sp : originalList)
+            {
+                if (sp.getTitle().toLowerCase(Locale.getDefault()).contains(charText))
+                {
+                    songs.add(sp);
+                }
+                else if (sp.getArtist().toLowerCase(Locale.getDefault()).contains(charText))
+                {
+                    songs.add(sp);
+                }
+                else if (sp.getAlbumName().toLowerCase(Locale.getDefault()).contains(charText))
+                {
+                    songs.add(sp);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
 }

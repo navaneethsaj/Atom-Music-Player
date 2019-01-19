@@ -21,10 +21,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -35,9 +38,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NavigationView.OnNavigationItemSelectedListener, TextWatcher {
 
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE =123 ;
     private ArrayList<Song> songList;
@@ -55,9 +59,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     SeekBar seekBar;
     RelativeLayout controlLayout;
     MediaPlayer mediaPlayer;
+    EditText searchBar;
     NavigationView navigationView;
     private Handler myHandler = new Handler();
-    MusicControlBroadCastReceiver musicControlBroadCastReceiver;
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
         mDrawerLayout = findViewById(R.id.drawer_layout);
+        searchBar = findViewById(R.id.search_bar);
         playButton = findViewById(R.id.play_pause);
         prevButton = findViewById(R.id.previous_button);
         nextButton = findViewById(R.id.next_button);
@@ -106,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         albumArtImageView = findViewById(R.id.albumArtController);
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
+        searchBar.addTextChangedListener(this);
         songList = new ArrayList<Song>();
 
         if (checkPermission()){
@@ -129,7 +134,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     (android.provider.MediaStore.Audio.Media.ARTIST);
             int albumColumn = musicCursor.getColumnIndex
                     (MediaStore.Audio.Media.ALBUM_ID);
-
+            int albumNameColumn = musicCursor.getColumnIndex
+                    (MediaStore.Audio.Media.ALBUM);
             //add songs to list
             do {
 
@@ -137,7 +143,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 long albumId = musicCursor.getLong(albumColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                songList.add(new Song(thisId, thisTitle, thisArtist,albumId));
+                String thisAlbum = musicCursor.getString(albumNameColumn);
+                songList.add(new Song(thisId, thisTitle, thisArtist, thisAlbum, albumId));
             }
             while (musicCursor.moveToNext());
         }
@@ -279,5 +286,21 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         seekBar.setOnSeekBarChangeListener(this);
         Log.d("oncreateZZ","true");
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        String text = searchBar.getText().toString().toLowerCase(Locale.getDefault());
+        songAdapter.filter(text);
     }
 }

@@ -41,6 +41,40 @@
             android:scaleType="fitXY"
             android:layout_width="match_parent"
             android:layout_height="300dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_below="@id/albumartFullplayer"
+            android:layout_width="match_parent"
+            android:gravity="center_vertical"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:scaleY=".5"
+                android:scaleX=".5"
+                android:layout_weight="4"
+                android:src="@drawable/baseline_volume_mute_black_48dp"/>
+            <SeekBar
+                android:layout_weight="1"
+                android:id="@+id/volumeControl"
+                android:progressTint="@color/progressTint"
+                android:thumb="@color/progressBgTint"
+                android:progressBackgroundTint="@color/progressBgTint"
+                android:layout_gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <ImageView
+                android:layout_weight="4"
+                android:layout_width="match_parent"
+                android:layout_gravity="center_vertical"
+                android:scaleY=".5"
+                android:scaleX=".5"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_volume_up_black_48dp"/>
+
+        </LinearLayout>
+
     </RelativeLayout>
     <RelativeLayout
         android:layout_alignParentBottom="true"
